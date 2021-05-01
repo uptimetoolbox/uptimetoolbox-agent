@@ -125,4 +125,8 @@ else
 
 fi # end is_systemd
 
+printf 'Sending initial packet...'
+/bin/sh /opt/uptimetoolbox/agent.sh
+printf 'done\n'
+
 printf 'Installation successful\n'
