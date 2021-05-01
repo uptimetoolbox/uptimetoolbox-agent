@@ -67,7 +67,7 @@ if [ "$is_systemd" = 'false' ] && [ "$has_cron" = 'false' ]; then
   exit 1
 fi
 
-printf 'Fetching agent...'
+printf 'fetching agent.............'
 mkdir -p /opt/uptimetoolbox
 curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/master/agent.sh --output /opt/uptimetoolbox/agent.sh
 chmod u+x /opt/uptimetoolbox/agent.sh
@@ -79,7 +79,7 @@ sed -i "s~{{ server }}~${SERVER}~" /opt/uptimetoolbox/agent.sh  # alt delimiter 
 
 # IF SYSTEMD
 if [ "$is_systemd" = 'true' ]; then
-  printf 'Using systemd...'
+  printf 'using systemd..............'
 
   # Note: Heredoc lines are TAB delimited. Spaces will not work
   cat > /etc/systemd/system/uptimetoolbox.service <<-EOD
@@ -107,14 +107,14 @@ EOD
   systemctl start uptimetoolbox.service     # run initial job
   systemctl start uptimetoolbox.timer       # start timer service
   systemctl -q enable uptimetoolbox.timer   # run timer on boot
-  printf 'service created\n'
+  printf 'done\n'
 
 else
 
   # NO SYSTEMD, TRY CRON
   if [ "$has_cron" = 'true' ]; then
 
-    printf 'creating crontab entry...'
+    printf 'adding crontab entry.......'
     (crontab -l 2>/dev/null; printf '*/1 * * * * /bin/sh /opt/uptimetoolbox/agent.sh\n') | crontab -
     printf 'done\n'
 
@@ -122,13 +122,13 @@ else
 
 fi # end is_systemd
 
-printf 'Initializing...'
+printf 'initializing...............'
 /bin/sh /opt/uptimetoolbox/agent.sh -i > /dev/null
 sleep 3
 printf 'done\n'
 
-printf 'Sending initial packet...'
+printf 'sending initial packet.....'
 /bin/sh /opt/uptimetoolbox/agent.sh
-printf 'done\n'
+printf 'done\n\n'
 
-printf 'Installation successful\n'
+printf 'Installation Successful\n'
