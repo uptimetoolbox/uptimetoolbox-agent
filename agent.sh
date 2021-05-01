@@ -5,10 +5,12 @@
 # Flags for experimental features
 zfsflag='false'
 dockerflag='false'
-while getopts 'zd' flag; do
+verbose='false'
+while getopts 'zdv' flag; do
   case "${flag}" in
     z) zfsflag='true' ;;
     d) dockerflag='true' ;;
+    v) verbose='true' ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
@@ -195,8 +197,11 @@ CONTENT=$(cat << END
 END
 )
 
-echo "${CONTENT}"
+if [ "${verbose}" = 'true' ] ; then
+    echo "${CONTENT}"
+    curl -i -H "Content-Type: application/json" -H "X-NODE-TOKEN: ${TOKEN}" -X POST --data "${CONTENT}" ${SERVER_PATH}
+    printf '\n'
+else
+    curl -s -H "Content-Type: application/json" -H "X-NODE-TOKEN: ${TOKEN}" -X POST --data "${CONTENT}" ${SERVER_PATH} > /dev/null
+fi
 
-curl -si -H "Content-Type: application/json" -H "X-NODE-TOKEN: ${TOKEN}" -X POST --data "${CONTENT}" ${SERVER_PATH}
-
-printf '\n'
