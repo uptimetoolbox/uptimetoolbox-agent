@@ -6,11 +6,13 @@
 zfsflag='false'
 dockerflag='false'
 verbose='false'
-while getopts 'zdv' flag; do
+initialize='false'
+while getopts 'zdvi' flag; do
   case "${flag}" in
     z) zfsflag='true' ;;
     d) dockerflag='true' ;;
     v) verbose='true' ;;
+    i) initialize='true' ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
@@ -196,6 +198,12 @@ CONTENT=$(cat << END
 }
 END
 )
+
+# Don't send values
+# Useful for skipping over initial, misleading, data
+if [ "${initialize}" = 'true' ] ; then
+  exit 0
+fi
 
 if [ "${verbose}" = 'true' ] ; then
     echo "${CONTENT}"

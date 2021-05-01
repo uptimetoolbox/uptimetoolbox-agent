@@ -93,10 +93,10 @@ EOD
 
   cat > /etc/systemd/system/uptimetoolbox.timer <<-EOD
 	[Unit]
-	Description=Run uptimetoolbox.service every 3 minutes
+	Description=Run uptimetoolbox.service every minute
 
 	[Timer]
-	OnCalendar=*:0/3
+	OnCalendar=*:0/1
 	Unit=uptimetoolbox.service
 
 	[Install]
@@ -115,15 +115,17 @@ else
   if [ "$has_cron" = 'true' ]; then
 
     printf 'creating crontab entry...'
-    (crontab -l 2>/dev/null; printf '*/3 * * * * /bin/sh /opt/uptimetoolbox/agent.sh\n') | crontab -
+    (crontab -l 2>/dev/null; printf '*/1 * * * * /bin/sh /opt/uptimetoolbox/agent.sh\n') | crontab -
     printf 'done\n'
-
-    # run initial job
-    /bin/sh /opt/uptimetoolbox/agent.sh > /dev/null
 
   fi  # END has_cron
 
 fi # end is_systemd
+
+printf 'Initializing...'
+/bin/sh /opt/uptimetoolbox/agent.sh -i > /dev/null
+sleep 3
+printf 'done\n'
 
 printf 'Sending initial packet...'
 /bin/sh /opt/uptimetoolbox/agent.sh
