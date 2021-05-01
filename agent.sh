@@ -167,7 +167,7 @@ CONTENT=$(cat << END
     "cpu_model": "${cpu_model}",
     "cpu_cores": "${cpu_cores}",
     "cpu_frequency": "${cpu_frequency}",
-    "cpu_max_frequency": "${cpu_max_frequency}",
+    "cpu_max_frequency": ${cpu_max_frequency:-null},
     "cpu_architecture": "${cpu_architecture}",
 
     "cpu_usage": "${cpu_usage}",
