@@ -36,7 +36,7 @@ fi
 SERVER_PATH=${SERVER}/api/v1/node-response/
 
 # Uninstall old versions
-printf 'removing old versions\n'
+printf '\nRemoving old versions\n'
 if [ -x "$(command -v systemctl)" ] && [ -e '/etc/systemd/system/uptimetoolbox.timer' ]; then
   systemctl -q disable uptimetoolbox.timer
 fi
@@ -49,14 +49,14 @@ rm -rf /etc/systemd/system/uptimetoolbox.*
 # Check if using systemd or init
 is_systemd='false'
 if ps -p 1 | grep -q 'systemd'; then
-  printf 'systemd detected\n'
+  printf 'Systemd detected\n'
   is_systemd='true'
 fi
 
 # check if cron service is enable
 has_cron='false'
 if pgrep -x cron > /dev/null || pgrep -x crond > /dev/null; then
-  printf 'cron detected\n'
+  printf 'Cron detected\n'
   has_cron='true'
 fi
 
@@ -67,7 +67,7 @@ if [ "$is_systemd" = 'false' ] && [ "$has_cron" = 'false' ]; then
   exit 1
 fi
 
-printf 'fetching agent.............'
+printf 'Fetching agent.............'
 mkdir -p /opt/uptimetoolbox
 curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/master/agent.sh --output /opt/uptimetoolbox/agent.sh
 chmod u+x /opt/uptimetoolbox/agent.sh
@@ -79,7 +79,7 @@ sed -i "s~{{ server }}~${SERVER}~" /opt/uptimetoolbox/agent.sh  # alt delimiter 
 
 # IF SYSTEMD
 if [ "$is_systemd" = 'true' ]; then
-  printf 'using systemd..............'
+  printf 'Using systemd..............'
 
   # Note: Heredoc lines are TAB delimited. Spaces will not work
   cat > /etc/systemd/system/uptimetoolbox.service <<-EOD
@@ -114,7 +114,7 @@ else
   # NO SYSTEMD, TRY CRON
   if [ "$has_cron" = 'true' ]; then
 
-    printf 'adding crontab entry.......'
+    printf 'Adding crontab entry.......'
     (crontab -l 2>/dev/null; printf '*/1 * * * * /bin/sh /opt/uptimetoolbox/agent.sh\n') | crontab -
     printf 'done\n'
 
@@ -122,13 +122,13 @@ else
 
 fi # end is_systemd
 
-printf 'initializing...............'
+printf 'Initializing...............'
 /bin/sh /opt/uptimetoolbox/agent.sh -i > /dev/null
 sleep 3
 printf 'done\n'
 
-printf 'sending initial packet.....'
+printf 'Sending initial packet.....'
 /bin/sh /opt/uptimetoolbox/agent.sh
 printf 'done\n\n'
 
-printf 'Installation Successful\n'
+printf 'Installation Successful\n\n'
