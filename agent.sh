@@ -71,6 +71,9 @@ ram_available=$(digits "$( cat /proc/meminfo | grep '^MemAvailable:' | grep 'kB'
 ram_buffers=$(digits "$( cat /proc/meminfo | grep '^Buffers:' | grep 'kB' | awk -F\: '{ print $2 }' )" )
 ram_cached=$(digits "$( cat /proc/meminfo | grep '^Cached:' | grep 'kB' | awk -F\: '{ print $2 }' )" )
 
+disk_total=$( df -PTk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee '(^/dev/zd|\S+\s+zfs)' | awk '{ print $3 }' | paste -sd+ - | bc )
+disk_used=$( df -PTk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee '(^/dev/zd|\S+\s+zfs)' | awk '{ print $4 }' | paste -sd+ - | bc )
+
 ## SNAPSHOT DATA
 # Fetch previous cpu snapshot data
 prev_cpu_user=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $2 }' )
@@ -121,6 +124,7 @@ cpu_softirq=$(( cur_cpu_softirq - prev_cpu_softirq ))
 
 cpu_usage=$( echo "scale=2 ; 100 - ((${cpu_idle} * 100) / (${cpu_user} + ${cpu_nice} + ${cpu_system} + ${cpu_idle} + ${cpu_iowait} + ${cpu_irq} + ${cpu_softirq}))" | bc )
 ram_usage=$( echo "scale=2 ; 100 - ((${ram_available}  * 100 ) / ${ram_total})" | bc )  # Other values are null if server off.
+disk_usage=$( echo "scale=2 ; ((${disk_used}  * 100 ) / ${disk_total})" | bc )
 
 uptime_delta=$( echo "scale=2 ; ${uptime} - ${prev_uptime}" | bc )
 
@@ -174,6 +178,7 @@ CONTENT=$(cat << END
 
     "cpu_usage": "${cpu_usage}",
     "ram_usage": "${ram_usage}",
+    "disk_usage": "${disk_usage}",
     "network_receive": "${network_receive}",
     "network_transmit": "${network_transmit}",
 
