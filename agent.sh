@@ -126,10 +126,10 @@ cpu_usage=$( echo "scale=2 ; 100 - ((${cpu_idle} * 100) / (${cpu_user} + ${cpu_n
 ram_usage=$( echo "scale=2 ; 100 - ((${ram_available}  * 100 ) / ${ram_total})" | bc )  # Other values are null if server off.
 disk_usage=$( echo "scale=2 ; ((${disk_used}  * 100 ) / ${disk_total})" | bc )
 
-uptime_delta=$( echo "scale=2 ; ${uptime} - ${prev_uptime}" | bc )
+uptime_delta=$( echo "scale=2 ; ${uptime} - ${prev_uptime}" | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # ensure always positive
 
-network_receive=$( echo "scale=2 ; (${cur_network_receive} - ${prev_network_receive}) / ${uptime_delta} " | bc )  # bytes per second
-network_transmit=$( echo "scale=2 ; (${cur_network_transmit} - ${prev_network_transmit}) / ${uptime_delta} " | bc )  # bytes per second
+network_receive=$( echo "scale=2 ; (${cur_network_receive} - ${prev_network_receive}) / ${uptime_delta} " | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # bytes per second
+network_transmit=$( echo "scale=2 ; (${cur_network_transmit} - ${prev_network_transmit}) / ${uptime_delta} " | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # bytes per second
 
 ip_list=$( ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " ") ; print $2, $4}' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
 
