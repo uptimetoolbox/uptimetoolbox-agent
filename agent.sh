@@ -76,20 +76,20 @@ disk_used=$( df -PTk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee 
 
 ## SNAPSHOT DATA
 # Fetch previous cpu snapshot data
-prev_cpu_user=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $2 }' )
-prev_cpu_nice=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $3 }' )
-prev_cpu_system=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $4 }' )
-prev_cpu_idle=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $5 }' )
-prev_cpu_iowait=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $6 }' )
-prev_cpu_irq=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $7 }' )
-prev_cpu_softirq=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $8 }' )
+prev_cpu_user=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $2 }' )
+prev_cpu_nice=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $3 }' )
+prev_cpu_system=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $4 }' )
+prev_cpu_idle=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $5 }' )
+prev_cpu_iowait=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $6 }' )
+prev_cpu_irq=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $7 }' )
+prev_cpu_softirq=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $8 }' )
 
 # Fetch previous network snapshot data
-prev_network_receive=$( cat /tmp/nf_data.stat | grep '^network_receive: ' | awk '{ print $2 }' )
-prev_network_transmit=$( cat /tmp/nf_data.stat | grep '^network_transmit: ' | awk '{ print $2 }' )
+prev_network_receive=$( cat /tmp/ut_data.stat | grep '^network_receive: ' | awk '{ print $2 }' )
+prev_network_transmit=$( cat /tmp/ut_data.stat | grep '^network_transmit: ' | awk '{ print $2 }' )
 
 # Fetch previous uptime data (needed for network calculations)
-prev_uptime=$( cat /tmp/nf_data.stat | grep '^uptime: ' | awk '{ print $2 }' )
+prev_uptime=$( cat /tmp/ut_data.stat | grep '^uptime: ' | awk '{ print $2 }' )
 
 # FETCH CURRENT
 # fetch current cpu data
@@ -107,13 +107,13 @@ cur_network_transmit=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' -e 'lo:
 
 
 # UPDATE SNAPSHOT DATA
-echo "cpu:$( cat /proc/stat | grep '^cpu ')" > /tmp/nf_data.stat
-echo "network_receive: ${cur_network_receive}" >> /tmp/nf_data.stat
-echo "network_transmit: ${cur_network_transmit}" >> /tmp/nf_data.stat
-echo "uptime: ${uptime}" >> /tmp/nf_data.stat
+echo "cpu:$( cat /proc/stat | grep '^cpu ')" > /tmp/ut_data.stat
+echo "network_receive: ${cur_network_receive}" >> /tmp/ut_data.stat
+echo "network_transmit: ${cur_network_transmit}" >> /tmp/ut_data.stat
+echo "uptime: ${uptime}" >> /tmp/ut_data.stat
 
 
-# returns /proc/stat values if nf_data.stat doesn't exist
+# returns /proc/stat values if ut_data.stat doesn't exist
 cpu_user=$(( cur_cpu_user - prev_cpu_user ))
 cpu_nice=$(( cur_cpu_nice - prev_cpu_nice ))
 cpu_system=$(( cur_cpu_system - prev_cpu_system ))
