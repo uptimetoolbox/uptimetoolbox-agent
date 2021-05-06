@@ -133,10 +133,11 @@ network_transmit=$( echo "scale=2 ; (${cur_network_transmit} - ${prev_network_tr
 
 ip_list=$( ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " ") ; print $2, $4}' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
 
+DISK_SIZE_JSON=$( df -Tk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | awk '{ print "{\"fs\": \"" $1 "\",\"type\": \"" $2 "\",\"blocks\": " $3 ",\"used\": " $4 ",\"avail\": " $5 ",\"use\": \"" $6 "\",\"mounted_on\": \"" $7 "\"}" }' | paste -sd, )
+DISK_INODE_JSON=$( df -Tik | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | awk '{ print "{\"fs\": \"" $1 "\",\"type\": \"" $2 "\",\"inodes\": " $3 ",\"iused\": " $4 ",\"ifree\": " $5 ",\"iuse\": \"" $6 "\",\"mounted_on\": \"" $7 "\"}" }' | paste -sd, )
+
 # Fetch bulky data to process on server
 RAW_CPU_DATA=$( cat /proc/stat | grep cpu | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
-RAW_DISK_SIZE_DATA=$( df -Tk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee '(^/dev/zd|\S+\s+zfs)' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # 1k blocks
-RAW_DISK_INODES_DATA=$( df -Ti | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee '(^/dev/zd|\S+\s+zfs)' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # 1k blocks
 RAW_NETWORK_DATA=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # Exclude first 2 lines
 RAW_PROCESS_CPU_DATA=$( ps aux | grep -v COMMAND | awk '{arr[$11]+=$3} ; END {for (key in arr) print arr[key],key}' | sort -rnk1 | head -n 10 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # Sort by Cpu Usage
 RAW_PROCESS_RAM_DATA=$( ps aux | grep -v COMMAND | awk '{arr[$11]+=$4} ; END {for (key in arr) print arr[key],key}' | sort -rnk1 | head -n 10 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # Sort by Ram Usage
@@ -191,9 +192,10 @@ CONTENT=$(cat << END
     "cpu_softirq": "${cpu_softirq}",
 
     "ip_list": "${ip_list}",
+    "disk_json": {"data": [${DISK_SIZE_JSON}] },
+    "inode_json": {"data": [${DISK_INODE_JSON}] },
+
     "cpu_raw": "${RAW_CPU_DATA}",
-    "disk_raw": "${RAW_DISK_SIZE_DATA}",
-    "inode_raw": "${RAW_DISK_INODES_DATA}",
     "network_raw": "${RAW_NETWORK_DATA}",
     "process_cpu": "${RAW_PROCESS_CPU_DATA}",
     "process_ram": "${RAW_PROCESS_RAM_DATA}",
