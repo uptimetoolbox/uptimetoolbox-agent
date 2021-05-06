@@ -7,6 +7,7 @@ zfsflag='false'
 dockerflag='false'
 verbose='false'
 initialize='false'
+
 while getopts 'zdvi' flag; do
   case "${flag}" in
     z) zfsflag='true' ;;
@@ -21,6 +22,7 @@ NODE={{ node }}
 TOKEN={{ token }}
 SERVER={{ server }}
 SERVER_PATH=${SERVER}/api/v1/node-response/
+AGENT_VERSION="v1.1.0"
 
 # trim whitespace
 trim () {
@@ -76,20 +78,20 @@ disk_used=$( df -PTk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee 
 
 ## SNAPSHOT DATA
 # Fetch previous cpu snapshot data
-prev_cpu_user=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $2 }' )
-prev_cpu_nice=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $3 }' )
-prev_cpu_system=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $4 }' )
-prev_cpu_idle=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $5 }' )
-prev_cpu_iowait=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $6 }' )
-prev_cpu_irq=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $7 }' )
-prev_cpu_softirq=$( cat /tmp/nf_data.stat | grep '^cpu:cpu ' | awk '{ print $8 }' )
+prev_cpu_user=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $2 }' )
+prev_cpu_nice=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $3 }' )
+prev_cpu_system=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $4 }' )
+prev_cpu_idle=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $5 }' )
+prev_cpu_iowait=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $6 }' )
+prev_cpu_irq=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $7 }' )
+prev_cpu_softirq=$( cat /tmp/ut_data.stat | grep '^cpu:cpu ' | awk '{ print $8 }' )
 
 # Fetch previous network snapshot data
-prev_network_receive=$( cat /tmp/nf_data.stat | grep '^network_receive: ' | awk '{ print $2 }' )
-prev_network_transmit=$( cat /tmp/nf_data.stat | grep '^network_transmit: ' | awk '{ print $2 }' )
+prev_network_receive=$( cat /tmp/ut_data.stat | grep '^network_receive: ' | awk '{ print $2 }' )
+prev_network_transmit=$( cat /tmp/ut_data.stat | grep '^network_transmit: ' | awk '{ print $2 }' )
 
 # Fetch previous uptime data (needed for network calculations)
-prev_uptime=$( cat /tmp/nf_data.stat | grep '^uptime: ' | awk '{ print $2 }' )
+prev_uptime=$( cat /tmp/ut_data.stat | grep '^uptime: ' | awk '{ print $2 }' )
 
 # FETCH CURRENT
 # fetch current cpu data
@@ -107,13 +109,13 @@ cur_network_transmit=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' -e 'lo:
 
 
 # UPDATE SNAPSHOT DATA
-echo "cpu:$( cat /proc/stat | grep '^cpu ')" > /tmp/nf_data.stat
-echo "network_receive: ${cur_network_receive}" >> /tmp/nf_data.stat
-echo "network_transmit: ${cur_network_transmit}" >> /tmp/nf_data.stat
-echo "uptime: ${uptime}" >> /tmp/nf_data.stat
+echo "cpu:$( cat /proc/stat | grep '^cpu ')" > /tmp/ut_data.stat
+echo "network_receive: ${cur_network_receive}" >> /tmp/ut_data.stat
+echo "network_transmit: ${cur_network_transmit}" >> /tmp/ut_data.stat
+echo "uptime: ${uptime}" >> /tmp/ut_data.stat
 
 
-# returns /proc/stat values if nf_data.stat doesn't exist
+# returns /proc/stat values if ut_data.stat doesn't exist
 cpu_user=$(( cur_cpu_user - prev_cpu_user ))
 cpu_nice=$(( cur_cpu_nice - prev_cpu_nice ))
 cpu_system=$(( cur_cpu_system - prev_cpu_system ))
@@ -126,17 +128,18 @@ cpu_usage=$( echo "scale=2 ; 100 - ((${cpu_idle} * 100) / (${cpu_user} + ${cpu_n
 ram_usage=$( echo "scale=2 ; 100 - ((${ram_available}  * 100 ) / ${ram_total})" | bc )  # Other values are null if server off.
 disk_usage=$( echo "scale=2 ; ((${disk_used}  * 100 ) / ${disk_total})" | bc )
 
-uptime_delta=$( echo "scale=2 ; ${uptime} - ${prev_uptime}" | bc )
+uptime_delta=$( echo "scale=2 ; ${uptime} - ${prev_uptime}" | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # ensure always positive
 
-network_receive=$( echo "scale=2 ; (${cur_network_receive} - ${prev_network_receive}) / ${uptime_delta} " | bc )  # bytes per second
-network_transmit=$( echo "scale=2 ; (${cur_network_transmit} - ${prev_network_transmit}) / ${uptime_delta} " | bc )  # bytes per second
+network_receive=$( echo "scale=2 ; (${cur_network_receive} - ${prev_network_receive}) / ${uptime_delta} " | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # bytes per second
+network_transmit=$( echo "scale=2 ; (${cur_network_transmit} - ${prev_network_transmit}) / ${uptime_delta} " | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # bytes per second
 
 ip_list=$( ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " ") ; print $2, $4}' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
 
+DISK_SIZE_JSON=$( df -Tk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | awk '{ print "{\"fs\": \"" $1 "\",\"type\": \"" $2 "\",\"blocks\": " $3 ",\"used\": " $4 ",\"avail\": " $5 ",\"use\": \"" $6 "\",\"mounted_on\": \"" $7 "\"}" }' | paste -sd, )
+DISK_INODE_JSON=$( df -Tik | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | awk '{ print "{\"fs\": \"" $1 "\",\"type\": \"" $2 "\",\"inodes\": " $3 ",\"iused\": " $4 ",\"ifree\": " $5 ",\"iuse\": \"" $6 "\",\"mounted_on\": \"" $7 "\"}" }' | paste -sd, )
+
 # Fetch bulky data to process on server
 RAW_CPU_DATA=$( cat /proc/stat | grep cpu | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
-RAW_DISK_SIZE_DATA=$( df -Tk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee '(^/dev/zd|\S+\s+zfs)' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # 1k blocks
-RAW_DISK_INODES_DATA=$( df -Ti | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | grep -v -Ee '(^/dev/zd|\S+\s+zfs)' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # 1k blocks
 RAW_NETWORK_DATA=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # Exclude first 2 lines
 RAW_PROCESS_CPU_DATA=$( ps aux | grep -v COMMAND | awk '{arr[$11]+=$3} ; END {for (key in arr) print arr[key],key}' | sort -rnk1 | head -n 10 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # Sort by Cpu Usage
 RAW_PROCESS_RAM_DATA=$( ps aux | grep -v COMMAND | awk '{arr[$11]+=$4} ; END {for (key in arr) print arr[key],key}' | sort -rnk1 | head -n 10 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' ) # Sort by Ram Usage
@@ -152,6 +155,7 @@ fi
 CONTENT=$(cat << END
 {
     "node": "${NODE}",
+    "agent_version": "${AGENT_VERSION}",
 
     "hostname": "${hostname}",
     "os_name": "${os_name}",
@@ -191,9 +195,10 @@ CONTENT=$(cat << END
     "cpu_softirq": "${cpu_softirq}",
 
     "ip_list": "${ip_list}",
+    "disk_json": {"data": [${DISK_SIZE_JSON}] },
+    "inode_json": {"data": [${DISK_INODE_JSON}] },
+
     "cpu_raw": "${RAW_CPU_DATA}",
-    "disk_raw": "${RAW_DISK_SIZE_DATA}",
-    "inode_raw": "${RAW_DISK_INODES_DATA}",
     "network_raw": "${RAW_NETWORK_DATA}",
     "process_cpu": "${RAW_PROCESS_CPU_DATA}",
     "process_ram": "${RAW_PROCESS_RAM_DATA}",

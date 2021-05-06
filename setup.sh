@@ -5,11 +5,14 @@
 NODE=""
 TOKEN=""
 SERVER=""
-while getopts ':n:t:s:' flag; do
+AGENT_VERSION="v1.1.0"
+
+while getopts ':n:t:s:a:' flag; do
   case "${flag}" in
     n) NODE=${OPTARG} ;;
     t) TOKEN=${OPTARG} ;;
     s) SERVER=${OPTARG} ;;
+    a) AGENT_VERSION=${OPTARG} ;;
     :)
       echo "Error: -${OPTARG} requires an argument."
       exit 1
@@ -69,7 +72,7 @@ fi
 
 printf 'Fetching agent.............'
 mkdir -p /opt/uptimetoolbox
-curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/v1.0.0/agent.sh --output /opt/uptimetoolbox/agent.sh
+curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/${AGENT_VERSION}/agent.sh --output /opt/uptimetoolbox/agent.sh
 chmod u+x /opt/uptimetoolbox/agent.sh
 printf 'done\n'
 
