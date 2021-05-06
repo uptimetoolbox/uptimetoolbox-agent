@@ -7,6 +7,7 @@ zfsflag='false'
 dockerflag='false'
 verbose='false'
 initialize='false'
+
 while getopts 'zdvi' flag; do
   case "${flag}" in
     z) zfsflag='true' ;;
@@ -21,6 +22,7 @@ NODE={{ node }}
 TOKEN={{ token }}
 SERVER={{ server }}
 SERVER_PATH=${SERVER}/api/v1/node-response/
+AGENT_VERSION="v1.1.0"
 
 # trim whitespace
 trim () {
@@ -153,6 +155,7 @@ fi
 CONTENT=$(cat << END
 {
     "node": "${NODE}",
+    "agent_version": "${AGENT_VERSION}",
 
     "hostname": "${hostname}",
     "os_name": "${os_name}",
