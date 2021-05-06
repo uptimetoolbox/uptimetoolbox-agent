@@ -69,7 +69,7 @@ fi
 
 printf 'Fetching agent.............'
 mkdir -p /opt/uptimetoolbox
-curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/master/agent.sh --output /opt/uptimetoolbox/agent.sh
+curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/v1.0.0/agent.sh --output /opt/uptimetoolbox/agent.sh
 chmod u+x /opt/uptimetoolbox/agent.sh
 printf 'done\n'
 
