@@ -133,7 +133,7 @@ uptime_delta=$( echo "scale=2 ; ${uptime} - ${prev_uptime}" | bc | awk '{ print 
 network_receive=$( echo "scale=2 ; (${cur_network_receive} - ${prev_network_receive}) / ${uptime_delta} " | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # bytes per second
 network_transmit=$( echo "scale=2 ; (${cur_network_transmit} - ${prev_network_transmit}) / ${uptime_delta} " | bc | awk '{ print $0 < 0 ? 0 : $0 }' )  # bytes per second
 
-ip_list=$( ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " ") ; print $2, $4}' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
+IP_JSON=$( ip -o addr | awk '{ print "{\"device\":\"" $2 "\", \"type\":\"" $3  "\", \"ip\":\"" $4"\"}" }' | grep -v "\"lo\"" | paste -sd, )  # exclude lo
 
 DISK_SIZE_JSON=$( df -Tk | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | awk '{ print "{\"fs\": \"" $1 "\",\"type\": \"" $2 "\",\"blocks\": " $3 ",\"used\": " $4 ",\"avail\": " $5 ",\"use\": \"" $6 "\",\"mounted_on\": \"" $7 "\"}" }' | paste -sd, )
 DISK_INODE_JSON=$( df -Tik | grep -Ee '\S+\s+(ext[234]|vfat|xfs|simfs)' | awk '{ print "{\"fs\": \"" $1 "\",\"type\": \"" $2 "\",\"inodes\": " $3 ",\"iused\": " $4 ",\"ifree\": " $5 ",\"iuse\": \"" $6 "\",\"mounted_on\": \"" $7 "\"}" }' | paste -sd, )
@@ -149,7 +149,8 @@ if [ "${zfsflag}" = 'true' ] ; then
 fi
 
 if [ "${dockerflag}" = 'true' ] ; then
-    RAW_DOCKER_DATA=$( docker stats --no-stream --no-trunc | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' )
+    DOCKER_INNER=$( docker stats --no-stream --no-trunc --format '{"name":"{{.Name}}", "id":"{{.ID}}", "cpuPerc":"{{.CPUPerc}}", "memUsage":"{{.MemUsage}}", "net":"{{.NetIO}}", "block":"{{.BlockIO}}", "memPerc":"{{.MemPerc}}", "pids":"{{.PIDs}}"}' | paste -sd, )
+    DOCKER_JSON=$( echo "{\"data\": [${DOCKER_INNER}] }" )
 fi
 
 CONTENT=$(cat << END
@@ -194,7 +195,7 @@ CONTENT=$(cat << END
     "cpu_irq": "${cpu_irq}",
     "cpu_softirq": "${cpu_softirq}",
 
-    "ip_list": "${ip_list}",
+    "ip_json": {"data": [${IP_JSON}] },
     "disk_json": {"data": [${DISK_SIZE_JSON}] },
     "inode_json": {"data": [${DISK_INODE_JSON}] },
 
@@ -204,7 +205,7 @@ CONTENT=$(cat << END
     "process_ram": "${RAW_PROCESS_RAM_DATA}",
 
     "zfs": "${RAW_ZFS_DATA}",
-    "docker": "${RAW_DOCKER_DATA}"
+    "docker": ${DOCKER_JSON:-null}
 }
 END
 )
