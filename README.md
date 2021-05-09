@@ -6,8 +6,19 @@ Linux agent for [uptimetoolbox.com](https://www.uptimetoolbox.com)
 ### Usage
 
 ```
-sudo bash nf_setup.sh \
-  -n 768e7938-2dc3-4136-99d5-309d24cf948e \
-  -t ce8088ba-8ebe-4610-a24d-49c47b9ff9ab \
-  -s https://gamma.uptimetoolbox.com
+sudo curl -s https://raw.githubusercontent.com/uptimetoolbox/uptimetoolbox-agent/v1.2.0/setup.sh \
+ | sudo bash -s -- \
+  -n 411c670c-d092-4c7f-985e-777b8900d8fa \
+  -t df3048b6-9f3f-47a1-9654-1c37147eabc2 \
+  -s http://ingest.syscloak.com
+```
+
+
+## Testing locally
+
+```
+sudo bash setup.sh -a master \
+  -n 411c670c-d092-4c7f-985e-777b8900d8fa \
+  -t df3048b6-9f3f-47a1-9654-1c37147eabc2 \
+  -s http://ingest.syscloak.com
 ```
