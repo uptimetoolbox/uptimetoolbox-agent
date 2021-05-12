@@ -22,7 +22,7 @@ NODE={{ node }}
 TOKEN={{ token }}
 SERVER={{ server }}
 SERVER_PATH=${SERVER}/api/v1/node-response/
-AGENT_VERSION="v1.2.0"
+AGENT_VERSION="v1.2.1"
 
 # trim whitespace
 trim () {

@@ -5,7 +5,7 @@
 NODE=""
 TOKEN=""
 SERVER=""
-AGENT_VERSION="v1.2.0"
+AGENT_VERSION="v1.2.1"
 
 while getopts ':n:t:s:a:' flag; do
   case "${flag}" in
