@@ -104,8 +104,8 @@ cur_cpu_irq=$( cat /proc/stat | grep '^cpu ' | awk '{ print $7 }' )
 cur_cpu_softirq=$( cat /proc/stat | grep '^cpu ' | awk '{ print $8 }' )
 
 # Network details (exclude loopback)
-cur_network_receive=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' -e 'lo:' | awk '{net+=$2} ; END {print net}' )
-cur_network_transmit=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' -e 'lo:' | awk '{net+=$10} ; END {print net}' )
+cur_network_receive=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' -e 'lo:' | awk -v OFMT='%.0f' '{net+=$2} ; END {print net}' )
+cur_network_transmit=$( cat /proc/net/dev | grep -v -e 'Inter' -e 'face' -e 'lo:' | awk -v OFMT='%.0f' '{net+=$10} ; END {print net}' )
 
 
 # UPDATE SNAPSHOT DATA
