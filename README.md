@@ -43,7 +43,7 @@ Note that the docker image will create new nodes on UptimeToolbox as needed.
 docker run -it --rm \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v /proc/:/host/proc/:ro \
-  -e ENDPOINT=http://127.0.0.1:8000 \
+  -e ENDPOINT=https://ingest.uptimetoolbox.com \
   -e ORGANIZATION_ID=2c349800-2a32-44fa-95f5-b63e7675d998 \
   -e API_KEY=4797e685-e389-42f7-a37e-faa367453396 \
   --network host \
@@ -55,7 +55,7 @@ docker run -it --rm \
 docker run -it --rm \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v /:/host/:ro \
-  -e ENDPOINT=http://127.0.0.1:8000 \
+  -e ENDPOINT=https://ingest.uptimetoolbox.com \
   -e ORGANIZATION_ID=cda08636-4f8c-4254-b9d0-caad47975d96 \
   -e API_KEY=4797e685-e389-42f7-a37e-faa367453396 \
   --network host \

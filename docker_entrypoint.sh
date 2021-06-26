@@ -50,5 +50,8 @@ printf 'creating crontab entry...'
 (crontab -l 2>/dev/null; printf "*/1 * * * * /bin/bash /opt/uptimetoolbox/agent.sh \n") | crontab -
 printf 'done\n'
 
+# Initial run
+/bin/bash /opt/uptimetoolbox/agent.sh
+
 # Start cron
 crond -f
