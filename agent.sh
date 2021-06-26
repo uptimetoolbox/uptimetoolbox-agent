@@ -22,7 +22,7 @@ NODE={{ node }}
 TOKEN={{ token }}
 SERVER={{ server }}
 SERVER_PATH=${SERVER}/api/v1/node-response/
-AGENT_VERSION="v1.2.1"
+AGENT_VERSION="v1.3.0"
 
 # trim whitespace
 trim () {
@@ -32,6 +32,8 @@ trim () {
 digits () {
   echo "$1" | sed 's/[^0-9]*//g'
 }
+
+touch /tmp/ut_data.stat
 
 # Fetch System info
 if [ -f /etc/os-release ]; then
@@ -53,8 +55,7 @@ fi
 hostname=$( hostname -f )
 kernel_name=$( uname -s )
 kernel_release=$( uname -r )
-
-ram_size=$()
+primary_mac=$( ip a | grep link/ether | head -n 1 | awk '{ print $2 }' )
 
 cpu_architecture=$( uname -m )
 cpu_model=$( cat /proc/cpuinfo | grep 'model name' -m 1 | awk -F\: '{ print $2 }' )
@@ -163,6 +164,7 @@ CONTENT=$(cat << END
     "os_version": "${os_version}",
     "kernel_name": "${kernel_name}",
     "kernel_release": "${kernel_release}",
+    "primary_mac": "${primary_mac}",
 
     "uptime": "${uptime}",
     "process_count": "${process_count}",
