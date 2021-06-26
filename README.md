@@ -47,7 +47,7 @@ docker run -it --rm \
   -e ORGANIZATION_ID=2c349800-2a32-44fa-95f5-b63e7675d998 \
   -e API_KEY=4797e685-e389-42f7-a37e-faa367453396 \
   --network host \
-  uptimetoolbox/agent:1.0.0
+  uptimetoolbox/agent:1.0.1
 ```
 
 #### For more complete disk usage data
@@ -59,7 +59,7 @@ docker run -it --rm \
   -e ORGANIZATION_ID=cda08636-4f8c-4254-b9d0-caad47975d96 \
   -e API_KEY=4797e685-e389-42f7-a37e-faa367453396 \
   --network host \
-  uptimetoolbox/agent:1.0.0
+  uptimetoolbox/agent:1.0.1
 ```
 
 Expert users can also cherry-pick the volumes to mount to the image.  
