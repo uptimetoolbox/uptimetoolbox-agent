@@ -7,13 +7,15 @@ zfsflag='false'
 dockerflag='false'
 verbose='false'
 initialize='false'
+containerized='false'
 
-while getopts 'zdvi' flag; do
+while getopts 'zdvic' flag; do
   case "${flag}" in
     z) zfsflag='true' ;;
     d) dockerflag='true' ;;
     v) verbose='true' ;;
     i) initialize='true' ;;
+    c) containerized='true' ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
@@ -35,29 +37,47 @@ digits () {
 
 touch /tmp/ut_data.stat
 
-# Fetch System info
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    os_name=${NAME}
-    os_version=${VERSION_ID}
-elif [ -f /etc/lsb-release ]; then
-    . /etc/lsb-release
-    os_name=${DISTRIB_ID}
-    os_version=${DISTRIB_RELEASE}
-elif [ -f /etc/system-release ]; then
-    os_name=$(cat /etc/system-release | awk '{print $1}')
-    os_version=$(cat /etc/system-release)
+
+
+if [ "${containerized}" = 'true' ] ; then
+  eval `docker info --format 'HOST_ID={{json .ID}}
+  hostname={{json .Name}}
+  os_name={{json .OperatingSystem}}
+  os_version={{json .OperatingSystem}}
+  kernel_name={{json .OSType}}
+  kernel_release={{json .KernelVersion}}
+  cpu_architecture={{json .Architecture}}
+  HOST_NCPU={{json .NCPU}}
+  HOST_MEMTOTAL={{json .MemTotal}}'`
+
 else
-    os_name=$(uname -s)
-    os_version=$(uname -r)
+  # Fetch System info
+  if [ -f /etc/os-release ]; then
+      . /etc/os-release
+      os_name=${NAME}
+      os_version=${VERSION_ID}
+  elif [ -f /etc/lsb-release ]; then
+      . /etc/lsb-release
+      os_name=${DISTRIB_ID}
+      os_version=${DISTRIB_RELEASE}
+  elif [ -f /etc/system-release ]; then
+      os_name=$(cat /etc/system-release | awk '{print $1}')
+      os_version=$(cat /etc/system-release)
+  else
+      os_name=$(uname -s)
+      os_version=$(uname -r)
+  fi
+
+  hostname=$( hostname -f )
+  kernel_name=$( uname -s )
+  kernel_release=$( uname -r )
+  cpu_architecture=$( uname -m )
+
 fi
 
-hostname=$( hostname -f )
-kernel_name=$( uname -s )
-kernel_release=$( uname -r )
+
 primary_mac=$( ip a | grep link/ether | head -n 1 | awk '{ print $2 }' )
 
-cpu_architecture=$( uname -m )
 cpu_model=$( cat /proc/cpuinfo | grep 'model name' -m 1 | awk -F\: '{ print $2 }' )
 cpu_cores=$( cat /proc/cpuinfo | grep 'model name' | wc -l )
 cpu_frequency=$(trim "$( lscpu | grep 'CPU MHz' |  awk -F\: '{ print $2 }' )" )

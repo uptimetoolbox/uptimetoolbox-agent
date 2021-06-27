@@ -47,7 +47,7 @@ sed -i "s/{{ token }}/${TOKEN}/" /opt/uptimetoolbox/agent.sh
 sed -i "s~{{ server }}~${SERVER}~" /opt/uptimetoolbox/agent.sh  # alt delimiter for url compatibility
 
 printf 'creating crontab entry...'
-(crontab -l 2>/dev/null; printf "*/1 * * * * /bin/bash /opt/uptimetoolbox/agent.sh \n") | crontab -
+(crontab -l 2>/dev/null; printf "*/1 * * * * /bin/bash /opt/uptimetoolbox/agent.sh -c \n") | crontab -
 printf 'done\n'
 
 # Initial run
