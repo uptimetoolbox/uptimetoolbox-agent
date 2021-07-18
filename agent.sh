@@ -78,8 +78,8 @@ fi
 
 primary_mac=$( ip a | grep link/ether | head -n 1 | awk '{ print $2 }' )
 
-cpu_model=$( cat /proc/cpuinfo | grep 'model name' -m 1 | awk -F\: '{ print $2 }' )
-cpu_cores=$( cat /proc/cpuinfo | grep 'model name' | wc -l )
+cpu_model=$(trim "$(lscpu | grep 'Model name' -m 1 | awk -F\: '{ print $2 }' )" )
+cpu_cores=$(trim "$(lscpu | grep 'CPU(s):' -m 1 | awk -F\: '{ print $2 }' )" )
 cpu_frequency=$(trim "$( lscpu | grep 'CPU MHz' |  awk -F\: '{ print $2 }' )" )
 cpu_max_frequency=$(trim "$( lscpu | grep 'CPU max MHz' |  awk -F\: '{ print $2 }' )" )
 
@@ -199,7 +199,7 @@ CONTENT=$(cat << END
 
     "cpu_model": "${cpu_model}",
     "cpu_cores": "${cpu_cores}",
-    "cpu_frequency": "${cpu_frequency}",
+    "cpu_frequency": "${cpu_frequency:-0}",
     "cpu_max_frequency": ${cpu_max_frequency:-null},
     "cpu_architecture": "${cpu_architecture}",
 
