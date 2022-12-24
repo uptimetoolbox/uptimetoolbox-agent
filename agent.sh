@@ -80,7 +80,12 @@ primary_mac=$( ip a | grep link/ether | head -n 1 | awk '{ print $2 }' )
 
 cpu_model=$(trim "$(lscpu | grep 'Model name' -m 1 | awk -F\: '{ print $2 }' )" )
 cpu_cores=$(trim "$(lscpu | grep 'CPU(s):' -m 1 | awk -F\: '{ print $2 }' )" )
+
 cpu_frequency=$(trim "$( lscpu | grep 'CPU MHz' |  awk -F\: '{ print $2 }' )" )
+if [ -z "${cpu_frequency}" ]; then
+  cpu_frequency=$( cat /proc/cpuinfo | grep -m 1 'cpu MHz' |  awk -F\: '{ print $2 }' )
+fi
+
 cpu_max_frequency=$(trim "$( lscpu | grep 'CPU max MHz' |  awk -F\: '{ print $2 }' )" )
 
 uptime=$( cat /proc/uptime | awk '{print $1}' )
@@ -245,4 +250,3 @@ if [ "${verbose}" = 'true' ] ; then
 else
     curl -s -H "Content-Type: application/json" -H "X-NODE-TOKEN: ${TOKEN}" -X POST --data "${CONTENT}" ${SERVER_PATH} > /dev/null
 fi
-
